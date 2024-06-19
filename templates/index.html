@@ -21,7 +21,7 @@
 			margin-top: 20px;
 		}
 
-		#data-list, #video-feed, .sounds-list {
+		#data-list, #video-feed, .button-list {
 			list-style: none;
 			padding: 0;
 			width: 100%;
@@ -40,7 +40,7 @@
             overflow-y: auto;
 		}
 
-        .sounds-list {
+        .button-list {
             max-height: 300px;
             overflow-y: auto;
         }
@@ -52,17 +52,19 @@
 
         .lists-container {
             display: flex;
+            flex-direction: row;
             justify-content: center;
+            align-items: flex-start;
             gap: 20px;
-            flex-wrap: nowrap;
-            overflow-x: auto;
+            flex-wrap: wrap;
+            margin-top: 20px;
         }
 
         ul, #video-feed {
             list-style: none;
             padding: 0;
             width: 100%;
-            max-width: 900px;
+            max-width: 600px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             background-color: #2a2a2a;
@@ -127,11 +129,12 @@
 
 		.footer {
 			text-align: center;
-			padding: 10px;
+			padding-top: 10px;
+			padding-bottom: 10px;
 			background-color: #202020;
 			color: #e0e0e0;
 			box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.1);
-			position: fixed;
+			position: absolute;
 			left: 0;
 			bottom: 0;
 			width: 100%;
@@ -147,26 +150,23 @@
 			text-decoration: underline;
 		}
 
-		@media (max-width: 600px) {
-            body, button {
-                padding: 10px;
-                font-size: 14px;
-            }
-			
-			body {
-				position: relative;
-    			min-height: 100vh;
-				box-sizing: border-box;
-			}
+        .joystick-container {
+            display: flex;
+            justify-content: center;
+            gap: 150px;
+            margin-top: 20px;
+        }
 
-            .lists-container {
-                flex-direction: column;
-            }
+        .joystick {
+            width: 128px;
+            position: relative;
+            margin-top: 20px;
+        }
 
+        @media (max-width: 600px) {
 			.footer {
-				position: absolute;
+				position: relative;
 			}
-
         }
 	</style>
 </head>
@@ -186,10 +186,28 @@
             <!-- Data will be appended here by JavaScript -->
         </ul>
 
-        <img id="video-feed" src="{{ url_for('video_feed') }}">
+        <div class="video-and-joysticks">
+            <img id="video-feed" src="{{ url_for('video_feed') }}">
+    
+            <div class="joystick-container">
+                <div class="joystick">
+                    <img src="static/joystick-base.png"/>
+                    <div id="stick1" style="position: absolute; left:32px; top:32px;">
+                        <img src="static/joystick-red.png"/>
+                    </div>
+                </div>
+                
+                <div class="joystick">
+                    <img src="static/joystick-base.png"/>
+                    <div id="stick2" style="position: absolute; left:32px; top:32px;">
+                        <img src="static/joystick-blue.png"/>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div>
-			<ul class="sounds-list">
+			<ul class="button-list">
 				{% for sound in sounds %}
 					<li style="display: flex; align-items: center; justify-content: space-between;">
 						<button onclick="location.href='/play_sound/{{ sound }}'">{{ sound }}</button>
@@ -202,11 +220,147 @@
 				<input type="file" name="file" accept=".mp3, .wav, .ogg, .aac, .flac">
 				<input type="submit" value="Upload">
 			</form>
+
 			<button style="background-color: red;" onclick="location.href='/stop_sound'">Stop Audio</button>
 		</div>
+
+        <div>
+            <ul class="button-list">
+				{% for action in actions %}
+					<li>
+						<button onclick="location.href='/run_action/{{ action }}'">{{ action }}</button>
+					</li>
+				{% endfor %}
+			</ul>
+        </div>
+
+        <p class="footer">Designed with ⚡ by<a href="https://benholland.xyz">Ben Holland</a></p>
     </div>
 
-	<p class="footer">Designed with ⚡ by<a href="https://benholland.xyz">Ben Holland</a></p>
+	
+
+    <!-- joystick code from https://github.com/stemkoski/HTML-Joysticks -->
+    <script>
+        class JoystickController
+        {
+            constructor( stickID, maxDistance, deadzone )
+            {
+                this.id = stickID;
+                let stick = document.getElementById(stickID);
+        
+                this.dragStart = null;
+        
+                this.touchId = null;
+                
+                this.active = false;
+                this.value = { x: 0, y: 0 }; 
+        
+                let self = this;
+        
+                function handleDown(event)
+                {
+                    self.active = true;
+        
+                    stick.style.transition = '0s';
+        
+                    event.preventDefault();
+        
+                    if (event.changedTouches)
+                        self.dragStart = { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
+                    else
+                        self.dragStart = { x: event.clientX, y: event.clientY };
+        
+                    if (event.changedTouches)
+                        self.touchId = event.changedTouches[0].identifier;
+                }
+                
+                function handleMove(event) 
+                {
+                    if ( !self.active ) return;
+        
+                    let touchmoveId = null;
+                    if (event.changedTouches)
+                    {
+                        for (let i = 0; i < event.changedTouches.length; i++)
+                        {
+                            if (self.touchId == event.changedTouches[i].identifier)
+                            {
+                                touchmoveId = i;
+                                event.clientX = event.changedTouches[i].clientX;
+                                event.clientY = event.changedTouches[i].clientY;
+                            }
+                        }
+        
+                        if (touchmoveId == null) return;
+                    }
+        
+                    const xDiff = event.clientX - self.dragStart.x;
+                    const yDiff = event.clientY - self.dragStart.y;
+                    const angle = Math.atan2(yDiff, xDiff);
+                    const distance = Math.min(maxDistance, Math.hypot(xDiff, yDiff));
+                    const xPosition = distance * Math.cos(angle);
+                    const yPosition = distance * Math.sin(angle);
+        
+                    stick.style.transform = `translate3d(${xPosition}px, ${yPosition}px, 0px)`;
+        
+                    const distance2 = (distance < deadzone) ? 0 : maxDistance / (maxDistance - deadzone) * (distance - deadzone);
+                    const xPosition2 = distance2 * Math.cos(angle);
+                    const yPosition2 = distance2 * Math.sin(angle);
+                    const xPercent = parseFloat((xPosition2 / maxDistance).toFixed(4));
+                    const yPercent = parseFloat((yPosition2 / maxDistance).toFixed(4));
+                    
+                    self.value = { x: xPercent, y: yPercent };
+
+                    self.sendData();
+                  }
+        
+                function handleUp(event) 
+                {
+                    if ( !self.active ) return;
+        
+                    if (event.changedTouches && self.touchId != event.changedTouches[0].identifier) return;
+        
+                    stick.style.transition = '.2s';
+                    stick.style.transform = `translate3d(0px, 0px, 0px)`;
+        
+                    self.value = { x: 0, y: 0 };
+                    self.touchId = null;
+                    self.active = false;
+
+                    self.sendData();
+                }
+        
+                stick.addEventListener('mousedown', handleDown);
+                stick.addEventListener('touchstart', handleDown);
+                document.addEventListener('mousemove', handleMove, {passive: false});
+                document.addEventListener('touchmove', handleMove, {passive: false});
+                document.addEventListener('mouseup', handleUp);
+                document.addEventListener('touchend', handleUp);
+            }
+        
+            sendData() {
+                fetch('/update_joystick', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        stickId: this.id,
+                        x: this.value.x,
+                        y: this.value.y
+                    })
+                })
+                .then(response => response.json())
+                .then(data => console.log('Success:', data))
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+        
+        let joystick1 = new JoystickController("stick1", 48, 8);
+        let joystick2 = new JoystickController("stick2", 48, 8);
+    </script>
 
     <script>
         function stopScript() {

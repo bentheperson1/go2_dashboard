@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 from pathlib import Path
 
-from flask import Flask, Response, render_template, redirect, url_for, request, session, jsonify
+from flask import Flask, Response, render_template, redirect, url_for, jsonify, request
 
 from unitree_sdk2py.idl.idl_dataclass import IDLDataClass
 from unitree_sdk2py.core.dds.channel import DDSChannelFactoryInitialize
@@ -16,6 +16,7 @@ from unitree_sdk2py.utils.logger import setup_logging
 from unitree_sdk2py.sdk.sdk import create_standard_sdk
 from unitree_sdk2py.go2.audiohub.audiohub_client import AudioHubClient
 from unitree_sdk2py.go2.video.video_client import VideoClient
+from unitree_sdk2py.go2.sport.sport_client import SportClient
 
 from werkzeug.utils import secure_filename
 
@@ -25,7 +26,7 @@ from pydub import AudioSegment
 
 load_dotenv(sys.path[0])
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 app.config['UPLOAD_FOLDER'] = 'sounds'
 app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'wav', 'ogg', 'aac', 'flac'}
@@ -33,12 +34,13 @@ app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'wav', 'ogg', 'aac', 'flac'}
 script_process = {'process': None, 'name': None}
 dog_data = {}
 
-kill_script_button = "down"
-
 idl_data_class = IDLDataClass()
 
 SportModeState_ = idl_data_class.get_data_class('SportModeState_')
 LowState_ = idl_data_class.get_data_class('LowState_')
+
+move_speed = 0.5
+turn_speed = 1
 
 def LowStateHandler(msg: LowState_):
 	dog_data["voltage"] = format(msg.power_v, ".2f")
@@ -71,6 +73,18 @@ video_client: VideoClient = robot.ensure_client(VideoClient.default_service_name
 video_client.SetTimeout(3.0)
 video_client.Init()
 
+sport_client: SportClient = robot.ensure_client(SportClient.default_service_name)
+sport_client.SetTimeout(3.0)
+sport_client.Init()
+
+actions_dict = {
+	"Stand Up": sport_client.StandUp,
+	"Lay Down": sport_client.StandDown,
+	"Wave": sport_client.Hello,
+	"Heart": sport_client.Heart,
+	"Sit": sport_client.Sit
+}
+
 @app.route('/', methods=['GET', 'POST'])
 def dashboard():
 	try:
@@ -78,9 +92,33 @@ def dashboard():
 		sounds_directory = os.listdir(os.path.join(os.getcwd(), "sounds"))
 
 		active_script = script_process['name'] if script_process['name'] else 'None'
-		return render_template('index.html', scripts=scripts_directory, sounds=sounds_directory, dog_data=dog_data, active_script=active_script)
+		return render_template('index.html', scripts=scripts_directory, actions=actions_dict.keys(), sounds=sounds_directory, dog_data=dog_data, active_script=active_script)
 	except Exception as e:
 		return str(e)
+
+@app.route('/run_action/<action_name>')
+def run_action(action_name):
+	if action_name in actions_dict:
+		threading.Thread(target=actions_dict[action_name]).start()
+	
+	return redirect(url_for('dashboard'))
+
+@app.route('/update_joystick', methods=['POST'])
+def update_joystick():
+	data = request.get_json()
+
+	x, y, yaw = 0, 0, 0
+
+	if data['stickId'] == 'stick1':
+		x = -data['y'] * move_speed
+		y = -data['x'] * move_speed
+	
+	if data['stickId'] == 'stick2':
+		yaw = -data['x'] * turn_speed
+
+	sport_client.Move(x, y, yaw)
+
+	return jsonify({'status': 'success', 'data': data}), 200
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
