@@ -2,7 +2,11 @@
 
 ![](images/dashboard.png)
 
-A nice little dashboard to access your Unitree Go2 through a web interface.
+A nice little dashboard to access your Unitree Go2 through a web interface that allows you to:
+- See stats about the dog like velocity or yaw speed
+- Get a live camera feed
+- Remotely start/stop scripts on your computer
+- Upload and play sound effects through the dog
 
 Uses [Legion1381's fork of the Unitree Python SDK](https://github.com/legion1581/go2_python_sdk2/tree/dev)
 
