@@ -5,40 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- viewport meta tag -->
     <title>Go2 Dashboard</title>
     <style>
-		* {
-			margin: 0;
-		}
+        * {
+            margin: 0;
+        }
 
         h1 {
             text-align: center;
         }
 
-		.scripts-container {
-			text-align: center;
-		}
+        .scripts-container {
+            text-align: center;
+        }
 
-		.scripts-container p {
-			margin-top: 20px;
-		}
+        .scripts-container p {
+            margin-top: 20px;
+        }
 
-		#data-list, #video-feed, .button-list {
-			list-style: none;
-			padding: 0;
-			width: 100%;
-			max-width: 300px;
-			min-width: 200px;
-			margin-top: 20px;
-			padding: 20px;
-			border-radius: 8px;
-			box-shadow: 0 0 10px rgba(0,0,0,0.1);
-			background-color: #2a2a2a;
-			color: #e0e0e0;
-		}
+        #data-list, #video-feed, .button-list {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+            max-width: 300px;
+            min-width: 200px;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
 
-		#data-list {
-			max-height: 300px;
+        #data-list {
+            max-height: 300px;
             overflow-y: auto;
-		}
+        }
 
         .button-list {
             max-height: 300px;
@@ -60,7 +60,7 @@
             margin-top: 20px;
         }
 
-        ul, #video-feed {
+        ul, .video-container {
             list-style: none;
             padding: 0;
             width: 100%;
@@ -84,11 +84,17 @@
             border-bottom: none;
         }
 
+        .video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 1280px;
+        }
+
         #video-feed {
             display: block;
             height: 100%;
-			min-width: 400px;
-			min-height: auto;
+            max-width: 100%;
         }
 
         body {
@@ -127,29 +133,6 @@
             color: #e0e0e0;
         }
 
-		.footer {
-			text-align: center;
-			padding-top: 10px;
-			padding-bottom: 10px;
-			background-color: #202020;
-			color: #e0e0e0;
-			box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.1);
-			position: absolute;
-			left: 0;
-			bottom: 0;
-			width: 100%;
-		}
-
-		.footer a {
-			color: #a927ff;
-			text-decoration: none;
-			padding: 0 10px;
-		}
-
-		.footer a:hover {
-			text-decoration: underline;
-		}
-
         .joystick-container {
             display: flex;
             justify-content: center;
@@ -163,16 +146,24 @@
             margin-top: 20px;
         }
 
-        @media (max-width: 600px) {
-			.footer {
-				position: relative;
-			}
+        .slider-container {
+            text-align: center;
         }
-	</style>
+
+        .slider {
+            max-width: 300px;
+        }
+
+        @media (max-width: 600px) {
+            .footer {
+                position: relative;
+            }
+        }
+    </style>
 </head>
 <body>
     <h1>Go2 Dashboard</h1>
-	
+    
     <div class="scripts-container">
         {% for script in scripts %}
             <button onclick="location.href='/run/{{ script }}'">{{ script }}</button>
@@ -186,9 +177,11 @@
             <!-- Data will be appended here by JavaScript -->
         </ul>
 
-        <div class="video-and-joysticks">
-            <img id="video-feed" src="{{ url_for('video_feed') }}">
-    
+        <div>
+            <div class="video-container">
+                <img id="video-feed" src="{{ url_for('video_feed') }}">
+            </div>
+
             <div class="joystick-container">
                 <div class="joystick">
                     <img src="static/joystick-base.png"/>
@@ -207,31 +200,33 @@
         </div>
 
         <div>
-			<ul class="button-list">
-				{% for sound in sounds %}
-					<li style="display: flex; align-items: center; justify-content: space-between;">
-						<button onclick="location.href='/play_sound/{{ sound }}'">{{ sound }}</button>
-						<button style="background-color: red;" onclick="location.href='/delete_sound/{{ sound }}'">X</button>
-					</li>
-				{% endfor %}
-			</ul>
+            <ul class="button-list">
+                {% for sound in sounds %}
+                    <li style="display: flex; align-items: center; justify-content: space-between;">
+                        <button onclick="location.href='/play_sound/{{ sound }}'">{{ sound }}</button>
+                        <button style="background-color: red;" onclick="location.href='/delete_sound/{{ sound }}'">X</button>
+                    </li>
+                {% endfor %}
+            </ul>
 
-			<form method="post" action="/upload" enctype="multipart/form-data" style="text-align: center; margin-top: 20px;">
-				<input type="file" name="file" accept=".mp3, .wav, .ogg, .aac, .flac">
-				<input type="submit" value="Upload">
-			</form>
+            <form method="post" action="/upload" enctype="multipart/form-data" style="text-align: center; margin-top: 20px;">
+                <input type="file" name="file" accept=".mp3, .wav, .ogg, .aac, .flac">
+                <input type="submit" value="Upload">
+            </form>
 
-			<button style="background-color: red;" onclick="location.href='/stop_sound'">Stop Audio</button>
-		</div>
+            <button style="background-color: red;" onclick="location.href='/stop_sound'">Stop Audio</button>
+            
+            <input type="range" min="0" max="10" value={{ volume }} class="slider" id="audio-slider" onmouseup="sliderReleased()">
+        </div>
 
         <div>
             <ul class="button-list">
-				{% for action in actions %}
-					<li>
-						<button onclick="location.href='/run_action/{{ action }}'">{{ action }}</button>
-					</li>
-				{% endfor %}
-			</ul>
+                {% for action in actions %}
+                    <li>
+                        <button onclick="location.href='/run_action/{{ action }}'">{{ action }}</button>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
 
@@ -359,6 +354,11 @@
     </script>
 
     <script>
+        function sliderReleased() {
+            let sliderValue = document.getElementById('audio-slider').value;
+            window.location.href = `/change_volume/${sliderValue}`;
+        }
+
         function stopScript() {
             fetch('/stop_script')
                 .then(response => {
@@ -381,7 +381,7 @@
 
             source.onmessage = function(event) {
                 console.log("Data received: ", event.data);
-				
+                
                 var data = JSON.parse(event.data);
                 var list = document.getElementById('data-list');
 

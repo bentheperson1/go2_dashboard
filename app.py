@@ -17,14 +17,11 @@ from unitree_sdk2py.sdk.sdk import create_standard_sdk
 from unitree_sdk2py.go2.audiohub.audiohub_client import AudioHubClient
 from unitree_sdk2py.go2.video.video_client import VideoClient
 from unitree_sdk2py.go2.sport.sport_client import SportClient
+from unitree_sdk2py.go2.vui.vui_client import VuiClient
 
 from werkzeug.utils import secure_filename
 
-from dotenv import load_dotenv
-
 from pydub import AudioSegment
-
-load_dotenv(sys.path[0])
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
@@ -41,6 +38,8 @@ LowState_ = idl_data_class.get_data_class('LowState_')
 
 move_speed = 0.5
 turn_speed = 1
+
+current_volume = 0
 
 def LowStateHandler(msg: LowState_):
 	dog_data["voltage"] = format(msg.power_v, ".2f")
@@ -77,8 +76,13 @@ sport_client: SportClient = robot.ensure_client(SportClient.default_service_name
 sport_client.SetTimeout(3.0)
 sport_client.Init()
 
+vui_client: VuiClient = robot.ensure_client(VuiClient.default_service_name)
+vui_client.SetTimeout(3.0)
+vui_client.Init()
+vui_client.SetSwitch(True)
+
 actions_dict = {
-	"Stand Up": sport_client.StandUp,
+	"Stand Up": sport_client.RecoveryStand,
 	"Lay Down": sport_client.StandDown,
 	"Wave": sport_client.Hello,
 	"Heart": sport_client.Heart,
@@ -92,7 +96,7 @@ def dashboard():
 		sounds_directory = os.listdir(os.path.join(os.getcwd(), "sounds"))
 
 		active_script = script_process['name'] if script_process['name'] else 'None'
-		return render_template('index.html', scripts=scripts_directory, actions=actions_dict.keys(), sounds=sounds_directory, dog_data=dog_data, active_script=active_script)
+		return render_template('index.html', scripts=scripts_directory, actions=actions_dict.keys(), sounds=sounds_directory, dog_data=dog_data, active_script=active_script, volume=current_volume)
 	except Exception as e:
 		return str(e)
 
@@ -257,6 +261,16 @@ def delete_sound(sound_name):
 @app.route('/stop_sound')
 def stop_sound():
 	audio_client.MegaphoneExit()
+
+	return redirect(url_for('dashboard'))
+
+@app.route('/change_volume/<volume_lvl>')
+def change_volume(volume_lvl):
+	global current_volume
+
+	volume = int(volume_lvl)
+	vui_client.SetVolume(volume)
+	current_volume = volume
 
 	return redirect(url_for('dashboard'))
 

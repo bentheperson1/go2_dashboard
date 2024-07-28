@@ -7,10 +7,14 @@ A nice little dashboard to access your Unitree Go2 through a web interface that 
 - Get a live camera feed
 - Remotely start/stop scripts on your computer
 - Upload and play sound effects through the dog
+- Control the dog's movement using virtual joysticks
+- Run actions like standing up, laying down, or wave
 
 Uses [Legion1381's fork of the Unitree Python SDK](https://github.com/legion1581/go2_python_sdk2/tree/dev)
 
 ## Code Setup (Local Machine)
+
+### Note: This dashboard currently only works over ethernet. Use [This guide](https://support.unitree.com/home/en/developer/Quick_start) to configure your networking correctly.
 
 **Prerequisites:**
 Ensure CMake and Python 3 are installed on your system.
