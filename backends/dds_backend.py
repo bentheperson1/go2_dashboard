@@ -14,16 +14,17 @@ from unitree_sdk2py.go2.vui.vui_client import VuiClient
 
 class DDSBackend:
     def __init__(self):
+        self.name = "DDS"
         self.idl_data_class = IDLDataClass()
         self.sdk = create_standard_sdk('UnitreeGo2SDK')
         self.communicator = DDSChannelFactoryInitialize(domainId=0)
         self.robot = self.sdk.create_robot(self.communicator, serialNumber='B42D2000XXXXXXXX')
 
     def initialize(self):
-        audio_client = self.robot.ensure_client(AudioHubClient.default_service_name)
-        video_client = self.robot.ensure_client(VideoClient.default_service_name)
-        sport_client = self.robot.ensure_client(SportClient.default_service_name)
-        vui_client = self.robot.ensure_client(VuiClient.default_service_name)
+        audio_client: AudioHubClient = self.robot.ensure_client(AudioHubClient.default_service_name)
+        video_client: VideoClient = self.robot.ensure_client(VideoClient.default_service_name)
+        sport_client: SportClient = self.robot.ensure_client(SportClient.default_service_name)
+        vui_client: VuiClient = self.robot.ensure_client(VuiClient.default_service_name)
 
         audio_client.Init()
         video_client.Init()
@@ -102,7 +103,7 @@ class DDSMotion:
 
 
 class DDSTelemetry:
-    def __init__(self, communicator: DDSCommunicator, idl_data_class):
+    def __init__(self, communicator: DDSCommunicator, idl_data_class: IDLDataClass):
         self.dog_data = {}
         LowState_ = idl_data_class.get_data_class('LowState_')
         SportModeState_ = idl_data_class.get_data_class('SportModeState_')

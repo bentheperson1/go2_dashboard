@@ -8,7 +8,7 @@ from flask import Flask, Response, render_template, redirect, url_for, jsonify, 
 
 from werkzeug.utils import secure_filename
 
-from backends.backend_factory import BackendFactory, BackendTypes
+from backends.backend_factory import BackendFactory
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
@@ -19,7 +19,7 @@ script_process = {'process': None, 'name': None}
 dog_data = {}
 current_volume = 0
 
-backend = BackendFactory.load_backend(BackendTypes.DDS)
+backend = BackendFactory.load_backend("DDS")
 sdk, robot, backend_clients = backend.initialize()
 
 def allowed_file(filename: str):
@@ -39,7 +39,8 @@ def dashboard():
 			sounds=sounds_directory, 
 			dog_data=dog_data, 
 			active_script=active_script, 
-			volume=current_volume
+			volume=current_volume,
+			backend_type=backend.name
 		)
 	except Exception as e:
 		return str(e)

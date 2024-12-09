@@ -3,6 +3,7 @@ import json
 
 class WebRTCBackend:
     def __init__(self):
+        self.name = "WebRTC"
         print("Initializing WebRTC backend...")
 
     def initialize(self):
