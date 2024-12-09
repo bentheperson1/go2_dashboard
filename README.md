@@ -11,7 +11,7 @@ A nice little dashboard to access your Unitree Go2 through a web interface that 
 - Run actions like standing up, laying down, or wave
 
 To Do:
-- Add WebRTC support
+- Add WebRTC support: In progress on [Develop](https://github.com/bentheperson1/go2_dashboard/tree/develop)
 - Add support for running the dashboard on the dog itself
 
 Uses [Legion1381's fork of the Unitree Python SDK](https://github.com/legion1581/go2_python_sdk2/tree/dev)
