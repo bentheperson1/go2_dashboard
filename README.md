@@ -10,6 +10,10 @@ A nice little dashboard to access your Unitree Go2 through a web interface that 
 - Control the dog's movement using virtual joysticks
 - Run actions like standing up, laying down, or wave
 
+To Do:
+- Add WebRTC support
+- Add support for running the dashboard on the dog itself
+
 Uses [Legion1381's fork of the Unitree Python SDK](https://github.com/legion1581/go2_python_sdk2/tree/dev)
 
 ## Code Setup (Local Machine)
