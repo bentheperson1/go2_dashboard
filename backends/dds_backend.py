@@ -51,7 +51,7 @@ class DDSBackend:
             "actions": actions
         }
 
-        return self.sdk, self.robot, backend_clients
+        return backend_clients
 
 
 class DDSAudio:

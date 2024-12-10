@@ -3,6 +3,7 @@ import sys
 import subprocess
 import threading
 from pathlib import Path
+import asyncio
 
 from flask import Flask, Response, render_template, redirect, url_for, jsonify, request
 
@@ -20,7 +21,7 @@ dog_data = {}
 current_volume = 0
 
 backend = BackendFactory.load_backend("RTC")
-sdk, robot, backend_clients = backend.initialize()
+backend_clients = backend.initialize() if backend.name == "DDS" else asyncio.run(backend.initialize())
 
 def allowed_file(filename: str):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
