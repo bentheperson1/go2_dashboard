@@ -9,7 +9,13 @@ REQUIREMENTS_FILE="${SCRIPT_DIR}/requirements.txt"
 sudo apt update
 sudo apt install -y python3 python3-venv python3-pip systemd
 
-# Check if CycloneDDS is installed
+if ! command -v cmake &> /dev/null; then
+    echo "CMake not found. Installing..."
+    sudo apt install -y cmake
+else
+    echo "CMake is already installed. Skipping installation."
+fi
+
 if [ ! -d "$HOME/cyclonedds/install" ]; then
     echo "CycloneDDS not found. Installing..."
     cd ~ || exit
@@ -69,5 +75,5 @@ sudo systemctl daemon-reload
 sudo systemctl enable $SERVICE_NAME
 sudo systemctl start $SERVICE_NAME
 
-echo "Flask service setup complete."
+echo "Go2 dashboard setup complete."
 echo "Use 'sudo systemctl status $SERVICE_NAME' to check its status."
