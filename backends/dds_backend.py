@@ -2,6 +2,10 @@ import time
 import json
 import numpy as np
 import cv2
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from unitree_sdk2py.sdk.sdk import create_standard_sdk
 from unitree_sdk2py.idl.idl_dataclass import IDLDataClass
@@ -40,7 +44,7 @@ class DDSBackend:
         }
 
         backend_clients = {
-            "audio": DDSAudio(audio_client),
+            "audio": DDSAudio(audio_client, vui_client),
             "video": DDSVideo(video_client),
             "motion": DDSMotion(sport_client),
             "telemetry": DDSTelemetry(self.communicator, self.idl_data_class),

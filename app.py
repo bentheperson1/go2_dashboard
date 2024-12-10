@@ -19,7 +19,7 @@ script_process = {'process': None, 'name': None}
 dog_data = {}
 current_volume = 0
 
-backend = BackendFactory.load_backend("DDS")
+backend = BackendFactory.load_backend("RTC")
 sdk, robot, backend_clients = backend.initialize()
 
 def allowed_file(filename: str):
