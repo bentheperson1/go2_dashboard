@@ -1,6 +1,7 @@
 from backends.dds_backend import DDSBackend
-from backends.webrtc_backend import WebRTCBackend
-from enum import Enum
+#from backends.webrtc_backend import WebRTCBackend
+
+import logging
 
 class BackendFactory:
 	@staticmethod
@@ -8,6 +9,8 @@ class BackendFactory:
 		if backend_name == "DDS":
 			return DDSBackend()
 		elif backend_name == "RTC":
-			return WebRTCBackend()
+			#return WebRTCBackend()
+			pass
 		else:
-			raise ValueError("Invalid backend specified.")
+			raise ValueError("Invalid backend specified. Do you have a .env file?")
+		

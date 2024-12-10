@@ -4,6 +4,7 @@ import subprocess
 import threading
 from pathlib import Path
 import asyncio
+import dotenv
 
 from flask import Flask, Response, render_template, redirect, url_for, jsonify, request
 
@@ -11,8 +12,11 @@ from werkzeug.utils import secure_filename
 
 from backends.backend_factory import BackendFactory
 
+dotenv.load_dotenv()
+
 app = Flask(__name__, static_folder="static")
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
+app.logger.setLevel("DEBUG")
 app.config['UPLOAD_FOLDER'] = 'sounds'
 app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'wav', 'ogg', 'aac', 'flac'}
 
@@ -20,8 +24,10 @@ script_process = {'process': None, 'name': None}
 dog_data = {}
 current_volume = 0
 
-backend = BackendFactory.load_backend("RTC")
+backend = BackendFactory.load_backend(os.getenv("BACKEND_TYPE"))
 backend_clients = backend.initialize() if backend.name == "DDS" else asyncio.run(backend.initialize())
+
+app.logger.debug("Loaded backend: " + os.getenv("BACKEND_TYPE"))
 
 def allowed_file(filename: str):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
