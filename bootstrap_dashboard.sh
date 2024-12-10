@@ -24,10 +24,17 @@ if [ ! -d "$HOME/cyclonedds/install" ]; then
     mkdir build install && cd build || exit
     cmake .. -DCMAKE_INSTALL_PREFIX="$HOME/cyclonedds/install"
     cmake --build . --target install
+
+    # Export and persist environment variable
     export CYCLONEDDS_HOME="$HOME/cyclonedds/install"
+    echo "export CYCLONEDDS_HOME=\"$HOME/cyclonedds/install\"" >> "$HOME/.bashrc"
+    echo "CycloneDDS installed and environment variable set."
 else
     echo "CycloneDDS is already installed. Skipping installation."
 fi
+
+# Load environment variables immediately
+source "$HOME/.bashrc"
 
 cd "$SCRIPT_DIR" || exit
 
@@ -66,6 +73,7 @@ ExecStart=$SERVER_SCRIPT
 Restart=always
 User=$(whoami)
 WorkingDirectory=$SCRIPT_DIR
+Environment=CYCLONEDDS_HOME=$HOME/cyclonedds/install
 
 [Install]
 WantedBy=multi-user.target
