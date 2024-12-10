@@ -9,6 +9,20 @@ REQUIREMENTS_FILE="${SCRIPT_DIR}/requirements.txt"
 sudo apt update
 sudo apt install -y python3 python3-venv python3-pip systemd
 
+# Check if CycloneDDS is installed
+if [ ! -d "$HOME/cyclonedds/install" ]; then
+    echo "CycloneDDS not found. Installing..."
+    cd ~ || exit
+    git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x 
+    cd cyclonedds || exit
+    mkdir build install && cd build || exit
+    cmake .. -DCMAKE_INSTALL_PREFIX="$HOME/cyclonedds/install"
+    cmake --build . --target install
+    export CYCLONEDDS_HOME="$HOME/cyclonedds/install"
+else
+    echo "CycloneDDS is already installed. Skipping installation."
+fi
+
 cd "$SCRIPT_DIR" || exit
 
 if [ ! -d "venv" ]; then
