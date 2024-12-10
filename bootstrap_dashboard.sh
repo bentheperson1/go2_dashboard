@@ -9,6 +9,17 @@ REQUIREMENTS_FILE="${SCRIPT_DIR}/requirements.txt"
 sudo apt update
 sudo apt install -y python3 python3-venv python3-pip systemd
 
+cd "$SCRIPT_DIR" || exit
+
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+fi
+
+source venv/bin/activate
+
+source "$HOME/.bashrc"
+
+
 if ! command -v cmake &> /dev/null; then
     echo "CMake not found. Installing..."
     sudo apt install -y cmake
@@ -25,24 +36,12 @@ if [ ! -d "$HOME/cyclonedds/install" ]; then
     cmake .. -DCMAKE_INSTALL_PREFIX="$HOME/cyclonedds/install"
     cmake --build . --target install
 
-    # Export and persist environment variable
     export CYCLONEDDS_HOME="$HOME/cyclonedds/install"
     echo "export CYCLONEDDS_HOME=\"$HOME/cyclonedds/install\"" >> "$HOME/.bashrc"
     echo "CycloneDDS installed and environment variable set."
 else
     echo "CycloneDDS is already installed. Skipping installation."
 fi
-
-# Load environment variables immediately
-source "$HOME/.bashrc"
-
-cd "$SCRIPT_DIR" || exit
-
-if [ ! -d "venv" ]; then
-    python3 -m venv venv
-fi
-
-source venv/bin/activate
 
 if [ -f "$REQUIREMENTS_FILE" ]; then
     pip install -r "$REQUIREMENTS_FILE"
